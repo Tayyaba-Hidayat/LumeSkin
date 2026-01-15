@@ -1,0 +1,9 @@
+{
+  "name": "Lume Skin",
+  "description": "Full-stack skin health platform with AI analysis, scheduling, and product commerce.",
+  "requestFramePermissions": [
+    "camera",
+    "microphone",
+    "geolocation"
+  ]
+}
