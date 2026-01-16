@@ -45,4 +45,19 @@ export const db = {
     create: (data: any) =>
       supabase.from("reviews").insert(data),
   },
+orders: {
+    create: (data: any) =>
+      supabase.from("orders").insert(data),
+
+    getByPatient: (patientId: string) =>
+      supabase.from("orders").select("*").eq("patient_id", patientId),
+  },
+
+  history: {
+    create: (data: any) =>
+      supabase.from("history").insert(data),
+
+    getByPatient: (patientId: string) =>
+      supabase.from("history").select("*").eq("patient_id", patientId),
+  },
 };
