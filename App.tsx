@@ -1,5 +1,5 @@
-import { supabase } from "./supabase";
 
+import { supabase } from "./supabase";
 function App() {
   async function saveTestData() {
     const { data, error } = await supabase
