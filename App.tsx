@@ -1,7 +1,6 @@
 import { supabase } from "./supabase";
 
 function App() {
-
   async function saveTestData() {
     const { data, error } = await supabase
       .from("patients")
@@ -14,9 +13,8 @@ function App() {
   }
 
   return (
-    <div style={{ padding: "40px" }}>
-      <h1>Supabase Connection Test</h1>
-
+    <div>
+      <h1>Supabase Test</h1>
       <button onClick={saveTestData}>
         Save Test Patient
       </button>
