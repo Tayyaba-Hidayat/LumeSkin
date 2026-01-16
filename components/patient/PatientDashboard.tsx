@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+ import React, { useEffect, useState } from 'react';
 import { User, Product } from '../../types';
 import SkinAnalysis from './SkinAnalysis';
 import ProductShop from './ProductShop';
