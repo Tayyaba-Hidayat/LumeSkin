@@ -5,7 +5,7 @@ import ProductShop from './ProductShop';
 import ConsultationBooking from './ConsultationBooking';
 import Chatbot from './Chatbot';
 import { PatientViewType } from '../../App';
-import { supabase } from '../../supabase';
+import { db } from '../../services'; // ✅ USE SERVICES
 
 interface PatientDashboardProps {
   user: User;
@@ -28,19 +28,8 @@ const PatientDashboard: React.FC<PatientDashboardProps> = ({
   useEffect(() => {
     const loadAppointments = async () => {
       setLoading(true);
-
-      const { data, error } = await supabase
-        .from('appointments')
-        .select('*')
-        .eq('patient_id', user.id)
-        .order('created_at', { ascending: false });
-
-      if (!error && data) {
-        setAppointments(data);
-      } else {
-        console.error(error);
-      }
-
+      const { data, error } = await db.appointments.getByPatient(user.id);
+      if (!error && data) setAppointments(data);
       setLoading(false);
     };
 
@@ -58,22 +47,15 @@ const PatientDashboard: React.FC<PatientDashboardProps> = ({
      SAVE APPOINTMENT
   ========================= */
   const handleBookingConfirm = async (booking: any) => {
-    const { data, error } = await supabase
-      .from('appointments')
-      .insert([
-        {
-          patient_id: user.id,
-          doctor: booking.doctorName,
-          time: `${booking.date}, ${booking.time}`,
-          type: 'Physical',
-        },
-      ])
-      .select();
+    const { data, error } = await db.appointments.create({
+      patient_id: user.id,
+      doctor: booking.doctorName,
+      time: `${booking.date}, ${booking.time}`,
+      type: 'Physical',
+    });
 
     if (!error && data) {
       setAppointments(prev => [data[0], ...prev]);
-    } else {
-      console.error(error);
     }
 
     setView('HOME');
@@ -82,11 +64,11 @@ const PatientDashboard: React.FC<PatientDashboardProps> = ({
   /* =========================
      VIEW ROUTING
   ========================= */
-  if (currentView === 'ANALYSIS') {
-    return <SkinAnalysis onBack={() => setView('HOME')} onAddToCart={addToCart} />;
-  }
 
-  if (currentView === 'SHOP') {
+  if (currentView === 'ANALYSIS')
+    return <SkinAnalysis onBack={() => setView('HOME')} onAddToCart={addToCart} />;
+
+  if (currentView === 'SHOP')
     return (
       <ProductShop
         onBack={() => setView('HOME')}
@@ -95,23 +77,20 @@ const PatientDashboard: React.FC<PatientDashboardProps> = ({
         cartCount={cart.length}
       />
     );
-  }
 
-  if (currentView === 'BOOK') {
+  if (currentView === 'BOOK')
     return (
       <ConsultationBooking
         onBack={() => setView('HOME')}
         onConfirm={handleBookingConfirm}
       />
     );
-  }
 
-  if (currentView === 'CHAT') {
+  if (currentView === 'CHAT')
     return <Chatbot onBack={() => setView('HOME')} />;
-  }
 
   /* =========================
-     CALENDAR
+     CALENDAR (APPOINTMENTS)
   ========================= */
   if (currentView === 'CALENDAR') {
     return (
@@ -133,10 +112,28 @@ const PatientDashboard: React.FC<PatientDashboardProps> = ({
   }
 
   /* =========================
-     CHECKOUT
+     CHECKOUT → SAVE ORDER
   ========================= */
   if (currentView === 'CHECKOUT') {
     const total = cart.reduce((acc, p) => acc + p.price, 0);
+
+    const placeOrder = async () => {
+      await db.orders.create({
+        patient_id: user.id,
+        total,
+        items: cart,
+      });
+
+      await db.history.create({
+        patient_id: user.id,
+        action: 'Order placed',
+        meta: cart,
+      });
+
+      alert('Order placed');
+      setCart([]);
+      setView('HOME');
+    };
 
     return (
       <div className="pb-20 space-y-4">
@@ -150,13 +147,7 @@ const PatientDashboard: React.FC<PatientDashboardProps> = ({
 
         <p><strong>Total:</strong> ${total}</p>
 
-        <button
-          onClick={() => {
-            alert('Order placed');
-            setCart([]);
-            setView('HOME');
-          }}
-        >
+        <button onClick={placeOrder}>
           Complete Purchase
         </button>
       </div>
@@ -164,7 +155,7 @@ const PatientDashboard: React.FC<PatientDashboardProps> = ({
   }
 
   /* =========================
-     HOME (DEFAULT)
+     HOME
   ========================= */
   return (
     <div className="space-y-4 pb-20">
@@ -180,5 +171,6 @@ const PatientDashboard: React.FC<PatientDashboardProps> = ({
 };
 
 export default PatientDashboard;
+
 
 
